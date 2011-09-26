@@ -31,9 +31,7 @@ app.configure('production', function(){
 // Routes
 
 app.get('/', function(req, res){
-  res.render('index', {
-    title: 'Express'
-  });
+  res.render('index', {});
 });
 
 app.listen(process.env.VCAP_APP_PORT || 3000);
