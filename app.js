@@ -5,7 +5,7 @@
 
 var express = require('express');
 var RedisStore = require('connect-redis')(express);
-var redis = require('redis').createClient('6379', '127.0.0.1', {namespace: 'db:'});
+var redis = require('redis').createClient();
 
 var app = module.exports = express.createServer();
 
@@ -49,7 +49,24 @@ app.get('/register', function(req, res) {
 });
 
 app.post('/register', function(req, res) {
-  res.redirect('/');
+  var username = req.param('username');
+  var emailaddr = req.param('email');
+  if(username && emailaddr && req.param('password') && req.param('cpassword')) {
+    if(req.param('password')==req.param('cpassword')) {
+      if(redis.exists('user:' + username) && redis.exists('email:' + emailaddr)) {
+        res.redirect('/');
+      } else {
+        req.flash('info', 'Username/Email already taken.');
+        res.render('register', {locals: {flash: req.flash()}});
+      }
+    } else {
+      req.flash('info', 'Passwords do not match.');
+      res.render('register', {locals: {flash: req.flash()}});
+    }
+  } else {
+    req.flash('info', 'Please fill all the fields.');
+    res.render('register', {locals: {flash: req.flash()}});
+  }
 });
 
 app.get('/logout', function(req, res) {
