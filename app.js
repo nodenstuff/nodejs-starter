@@ -4,6 +4,8 @@
  */
 
 var express = require('express');
+var RedisStore = require('connect-redis')(express);
+var redis = require('redis').createClient('6379', '127.0.0.1', {namespace: 'db:'});
 
 var app = module.exports = express.createServer();
 
@@ -15,7 +17,7 @@ app.configure(function(){
   app.use(express.bodyParser());
   app.use(express.methodOverride());
   app.use(express.cookieParser());
-  app.use(express.session({ secret: 'hookioisgreat' }));
+  app.use(express.session({ store: new RedisStore({maxAge: 24*3600*1000}), secret: 'hookioisgreat' }));
   app.use(app.router);
   app.use(express.static(__dirname + '/public'));
 });
@@ -30,8 +32,29 @@ app.configure('production', function(){
 
 // Routes
 
-app.get('/', function(req, res){
-  res.render('index', {});
+app.get('/', function(req, res) {
+  if(req.session.user) {
+    res.render('index');
+  } else {
+    res.render('login');
+  }
+});
+
+app.post('/', function(req, res) {
+  res.render('index');
+});
+
+app.get('/register', function(req, res) {
+  res.render('register');
+});
+
+app.post('/register', function(req, res) {
+  res.redirect('/');
+});
+
+app.get('/logout', function(req, res) {
+  req.session.destroy();
+  res.redirect('/');
 });
 
 app.listen(process.env.VCAP_APP_PORT || 3000);

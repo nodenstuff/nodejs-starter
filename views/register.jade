@@ -1,0 +1,24 @@
+.page-header
+  h1 Register 
+    small
+      a(href='/register') (Sign in to myIRC)
+.row.proper
+  form(action='/', method='post')
+    .clearfix
+      label Username:
+      .input
+        input.xlarge(name='username', type='text')
+    .clearfix
+      label Email address:
+      .input
+        input.xlarge(name='email', type='type')
+    .clearfix
+      label Password:
+      .input
+        input.xlarge(name='password', type='password')
+    .clearfix
+      label Confirm Password:
+      .input
+        input.xlarge(name='cpassword', type='password')
+    .actions
+      input.btn.primary(type='submit', value='Register')

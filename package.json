@@ -5,7 +5,9 @@
   "dependencies": {
     "express": "2.4.6",
     "jade": ">= 0.0.1",
-    "hook.io": "0.7.x"
+    "hook.io": "0.7.x",
+    "connect-redis": "1.x.x",
+    "redis": "0.x.x"
   },
   "subdomain": "irc",
   "scripts": {
