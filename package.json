@@ -1,5 +1,5 @@
 {
-  "name": "myIRC",
+  "name": "nodejs-starter",
   "version": "0.0.1",
   "private": true,
   "dependencies": {
@@ -9,7 +9,6 @@
     "connect-redis": "1.x.x",
     "redis": "0.x.x"
   },
-  "subdomain": "irc",
   "scripts": {
     "start": "app.js"
   }

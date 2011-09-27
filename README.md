@@ -1,3 +1,3 @@
-# MyIRC
+# nodejs-starter
 
-A web based irc client using hook.io
+A nodejs-starter package
