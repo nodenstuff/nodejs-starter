@@ -48,11 +48,12 @@ app.post('/', function(req, res) {
     redis.exists('user:' + emailaddr, function(err, rep){
       if(rep) {
         password = crypto.createCipher('blowfish', password).final('base64');
-        redis.hget('user:' + emailaddr, 'password', function(err, rep) {
-          if(rep==password) {
+        redis.hgetall('user:' + emailaddr, function(err, rep) {
+          if(rep.password==password) {
             req.session.user = 'user:' + emailaddr;
+            req.session.uid = rep.id;
             req.flash('success', 'Successfully logged in.');
-            res.render('index', {locals: {flash: req.flash()}});
+            res.redirect('/');
           } else {
             req.flash('warning', 'Incorrect password.');
             res.render('login', {locals: {flash: req.flash()}});
@@ -81,13 +82,17 @@ app.post('/register', function(req, res) {
     if(password==cpassword) {
       redis.exists('user:' + emailaddr, function(err, rep){
         if(!rep) {
-          password = crypto.createCipher('blowfish', password).final('base64');
-          redis.hmset('user:' + emailaddr, {
-            "password" : password,
-            "config" : ""
+          redis.incr('users');
+          redis.get('users', function(err, rep){
+            password = crypto.createCipher('blowfish', password).final('base64');
+            redis.hmset('user:' + emailaddr, {
+              "id": rep,
+              "password" : password,
+              "config" : ""
+            });
+            req.flash('success', 'Successfully registered.');
+            res.redirect('/');
           });
-          req.flash('success', 'Successfully registered.');
-          res.redirect('/');
         } else {
           req.flash('warning', 'Email Address already taken.');
           res.render('register', {locals: {flash: req.flash()}});
@@ -104,7 +109,9 @@ app.post('/register', function(req, res) {
 });
 
 app.get('/logout', function(req, res) {
-  req.session.destroy();
+  req.session.user = null;
+  req.session.uid = null;
+  req.flash('success', 'Successfully logged out.')
   res.redirect('/');
 });
 
