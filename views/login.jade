@@ -1,16 +1,18 @@
-.page-header
-  h1 Login 
-    small
-      a(href='/register') (Sign up to myIRC)
-.row.proper
-  form(action='/', method='post')
-    .clearfix
-      label Username:
-      .input
-        input.xlarge(name='username', type='text')
-    .clearfix
-      label Password:
-      .input
-        input.xlarge(name='password', type='password')
-    .actions
-      input.btn.primary(type='submit', value='Login')
+.content
+  .well
+    .page-header
+      h1 Login 
+        small
+          a(href='/register') (Sign up to myIRC)
+    .row.proper
+      form(action='/', method='post')
+        .clearfix
+          label Email Address:
+          .input
+            input.xlarge(name='emailaddr', type='text')
+        .clearfix
+          label Password:
+          .input
+            input.xlarge(name='password', type='password')
+        .actions
+          input.btn.primary(type='submit', value='Login')

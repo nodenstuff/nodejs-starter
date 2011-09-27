@@ -1,29 +1,27 @@
-- if (typeof(flash)!='undefined')
-  - if(flash.error)
-    .alert-message.error= flash.error
-  - if(flash.info)
-    .alert-message.warning= flash.info
-.page-header
-  h1 Register 
-    small
-      a(href='/') (Sign in to myIRC)
-.row.proper
-  form(action='/register', method='post')
-    .clearfix
-      label Username:
-      .input
-        input.xlarge(name='username', type='text')
-    .clearfix
-      label Email address:
-      .input
-        input.xlarge(name='email', type='type')
-    .clearfix
-      label Password:
-      .input
-        input.xlarge(name='password', type='password')
-    .clearfix
-      label Confirm Password:
-      .input
-        input.xlarge(name='cpassword', type='password')
-    .actions
-      input.btn.primary(type='submit', value='Register')
+.content
+  .well
+    - if (typeof(flash)!='undefined')
+      - if(flash.error)
+        .alert-message.error= flash.error
+      - if(flash.info)
+        .alert-message.warning= flash.info
+    .page-header
+      h1 Register 
+        small
+          a(href='/') (Sign in to myIRC)
+    .row.proper
+      form(action='/register', method='post')
+        .clearfix
+          label Email address:
+          .input
+            input.xlarge(name='emailaddr', type='type')
+        .clearfix
+          label Password:
+          .input
+            input.xlarge(name='password', type='password')
+        .clearfix
+          label Confirm Password:
+          .input
+            input.xlarge(name='cpassword', type='password')
+        .actions
+          input.btn.primary(type='submit', value='Register')

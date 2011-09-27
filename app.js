@@ -49,11 +49,10 @@ app.get('/register', function(req, res) {
 });
 
 app.post('/register', function(req, res) {
-  var username = req.param('username');
-  var emailaddr = req.param('email');
-  if(username && emailaddr && req.param('password') && req.param('cpassword')) {
+  var emailaddr = req.param('emailaddr');
+  if(emailaddr && req.param('password') && req.param('cpassword')) {
     if(req.param('password')==req.param('cpassword')) {
-      if(redis.exists('user:' + username) && redis.exists('email:' + emailaddr)) {
+      if(!redis.exists('user:' + emailaddr)) {
         res.redirect('/');
       } else {
         req.flash('info', 'Username/Email already taken.');
