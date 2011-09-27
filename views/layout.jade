@@ -21,6 +21,15 @@ html
             | Logged in as
             a(href='#') pkumar
     .container-fluid
+      - if (typeof(flash)!='undefined')
+        - if(flash.error)
+          .alert-message.error= flash.error
+        - if(flash.warning)
+          .alert-message.warning= flash.warning
+        - if(flash.success)
+          .alert-message.success= flash.success
+        - if(flash.info)
+          .alert-message.info= flash.info
       != body
       footer
         p Copyright © 2011, Pavan Kumar Sunkara

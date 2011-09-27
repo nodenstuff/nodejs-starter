@@ -6,6 +6,7 @@
 var express = require('express');
 var RedisStore = require('connect-redis')(express);
 var redis = require('redis').createClient();
+var crypto = require('crypto');
 
 var app = module.exports = express.createServer();
 
@@ -36,12 +37,36 @@ app.get('/', function(req, res) {
   if(req.session.user) {
     res.render('index');
   } else {
-    res.render('login');
+    res.render('login', {locals: {flash: req.flash()}});
   }
 });
 
 app.post('/', function(req, res) {
-  res.render('index');
+  var emailaddr = req.param('emailaddr');
+  var password = req.param('password');
+  if(emailaddr && password) {
+    redis.exists('user:' + emailaddr, function(err, rep){
+      if(rep) {
+        password = crypto.createCipher('blowfish', password).final('base64');
+        redis.hget('user:' + emailaddr, 'password', function(err, rep) {
+          if(rep==password) {
+            req.session.user = 'user:' + emailaddr;
+            req.flash('success', 'Successfully logged in.');
+            res.render('index', {locals: {flash: req.flash()}});
+          } else {
+            req.flash('warning', 'Incorrect password.');
+            res.render('login', {locals: {flash: req.flash()}});
+          }
+        });
+      } else {
+        req.flash('warning', 'Email address not found.');
+        res.render('login', {locals: {flash: req.flash()}});
+      }
+    });
+  } else {
+    req.flash('warning', 'Please fill all the fields.');
+    res.render('login', {locals: {flash: req.flash()}});
+  }
 });
 
 app.get('/register', function(req, res) {
@@ -50,20 +75,30 @@ app.get('/register', function(req, res) {
 
 app.post('/register', function(req, res) {
   var emailaddr = req.param('emailaddr');
-  if(emailaddr && req.param('password') && req.param('cpassword')) {
-    if(req.param('password')==req.param('cpassword')) {
-      if(!redis.exists('user:' + emailaddr)) {
-        res.redirect('/');
-      } else {
-        req.flash('info', 'Username/Email already taken.');
-        res.render('register', {locals: {flash: req.flash()}});
-      }
+  var password = req.param('password');
+  var cpassword = req.param('cpassword');
+  if(emailaddr && password && cpassword) {
+    if(password==cpassword) {
+      redis.exists('user:' + emailaddr, function(err, rep){
+        if(!rep) {
+          password = crypto.createCipher('blowfish', password).final('base64');
+          redis.hmset('user:' + emailaddr, {
+            "password" : password,
+            "config" : ""
+          });
+          req.flash('success', 'Successfully registered.');
+          res.redirect('/');
+        } else {
+          req.flash('warning', 'Email Address already taken.');
+          res.render('register', {locals: {flash: req.flash()}});
+        }
+      });
     } else {
-      req.flash('info', 'Passwords do not match.');
+      req.flash('warning', 'Passwords do not match.');
       res.render('register', {locals: {flash: req.flash()}});
     }
   } else {
-    req.flash('info', 'Please fill all the fields.');
+    req.flash('warning', 'Please fill all the fields.');
     res.render('register', {locals: {flash: req.flash()}});
   }
 });
