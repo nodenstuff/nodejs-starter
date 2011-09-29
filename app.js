@@ -3,16 +3,35 @@
  * Module dependencies.
  */
 
-var express = require('express');
-var RedisStore = require('connect-redis')(express);
-var redis = require('redis').createClient();
-var crypto = require('crypto');
+var express = require('express'),
+    redis = require('redis'),
+    crypto = require('crypto'),
+    nconf = require('nconf'),
+    redisStore = require('connect-redis')(express);
 
-var app = module.exports = express.createServer();
+var _ = require('underscore');
 
-var port = 3000;
+var app = module.exports = express.createServer(),
+    config = new nconf.Provider(),
+    mode = process.env.NODE_ENV || 'development',
+    port = 3000;
+
+// Environments configuration
+
+config.use('file', { file: './config.json' });
+config.load();
+config = config.file.store;
 
 // Configuration
+
+if(config.cloudfoundry) {
+  var cmode = config.cloudfoundry.env;
+  app.configure(cmode, function(){
+    port = process.env.VCAP_APP_PORT || 3000;
+    var service = JSON.parse(process.env.VCAP_SERVICES)['redis-2.2'][0].credentials;
+    config[cmode].redis = { host: service.hostname, port: service.port, pass: service.password };
+  });
+}
 
 app.configure(function(){
   app.set('views', __dirname + '/views');
@@ -20,31 +39,37 @@ app.configure(function(){
   app.use(express.bodyParser());
   app.use(express.methodOverride());
   app.use(express.cookieParser());
-  app.use(express.session({ store: new RedisStore({maxAge: 24*3600*1000}), secret: 'hookioisgreat' }));
   app.use(app.router);
   app.use(express.static(__dirname + '/public'));
+
+  redis = redis.createClient(config[mode].redis.port, config[mode].redis.host);
+  if(config[mode].redis.pass) {
+    redis.auth(config[mode].redis.pass);
+  }
 });
 
 app.configure('development', function(){
-  app.use(express.errorHandler({ dumpExceptions: true, showStack: true })); 
+  app.use(express.session({ secret: 'nodejsstarter' }));
+  app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
 });
 
-app.configure('production', function(){
-  app.use(express.errorHandler()); 
-});
-
-app.configure('staging', function(){
-  port = process.env.VCAP_APP_PORT || 3000;
+app.configure('production', 'staging', function(){
+  var sessionStore = new redisStore(_.extend(config[mode].redis, {maxAge: 24*3600*1000}));
+  app.use(express.session({ store: sessionStore, secret: 'nodejsstarter' }));
   app.use(express.errorHandler());
 });
 
 // Routes
 
 app.get('/', function(req, res) {
-  if(req.session.user) {
+  if(req.session && req.session.user) {
     res.render('index');
   } else {
-    res.render('login', {locals: {flash: req.flash()}});
+    if(req.session) {
+      res.render('login', {locals: {flash: req.flash()}});
+    } else {
+      res.render('login');
+    }
   }
 });
 
