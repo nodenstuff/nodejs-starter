@@ -39,6 +39,10 @@ app.configure(function(){
   app.use(express.bodyParser());
   app.use(express.methodOverride());
   app.use(express.cookieParser());
+
+  var sessionStore = new redisStore(_.extend(config[mode].redis, {maxAge: 24*3600*1000}));
+  app.use(express.session({ store: sessionStore, secret: 'nodejsstarter' }));
+
   app.use(app.router);
   app.use(express.static(__dirname + '/public'));
 
@@ -49,27 +53,20 @@ app.configure(function(){
 });
 
 app.configure('development', function(){
-  app.use(express.session({ secret: 'nodejsstarter' }));
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
 });
 
 app.configure('production', 'staging', function(){
-  var sessionStore = new redisStore(_.extend(config[mode].redis, {maxAge: 24*3600*1000}));
-  app.use(express.session({ store: sessionStore, secret: 'nodejsstarter' }));
   app.use(express.errorHandler());
 });
 
 // Routes
 
 app.get('/', function(req, res) {
-  if(req.session && req.session.user) {
-    res.render('index');
+  if(req.session.user) {
+    res.render('index', {locals: {flash: req.flash()}});
   } else {
-    if(req.session) {
-      res.render('login', {locals: {flash: req.flash()}});
-    } else {
-      res.render('login');
-    }
+    res.render('login', {locals: {flash: req.flash()}});
   }
 });
 
