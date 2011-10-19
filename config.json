@@ -7,8 +7,9 @@
   },
   "production": {
     "redis": {
-      "host": "nodejitsu:yourid@carp.redistogo.com",
-      "port": "9216"
+      "host": "carp.redistogo.com",
+      "port": "9216",
+      "pass": "secret"
     }
   },
   "staging": {},
